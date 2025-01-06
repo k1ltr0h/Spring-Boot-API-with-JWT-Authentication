@@ -2,7 +2,6 @@ package com.jwt.project.jwtauthentication.controller;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.web.exchanges.HttpExchange.Principal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,25 +14,26 @@ import com.jwt.project.jwtauthentication.entity.User;
 @RequestMapping("/home")
 public class Home {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
+    public Home(UserService userService) {
+        this.userService = userService;
+    }
 
-    // to get users details  
+    // to get users details
     @GetMapping("/user")
-    public List<User> getUser(){
+    public List<User> getUser() {
 
-         System.out.println("getting current users");
-        
-       return this.userService.getUsers();
+        System.out.println("getting current users");
+
+        return this.userService.getUsers();
     }
 
     // To get current user info.
     @GetMapping("/current-user")
-    public String getLoginUser(Principal principal){
-         System.out.println(principal.getName());
+    public String getLoginUser(Principal principal) {
+        System.out.println(principal.getName());
         return "current User";
     }
 
-    
 }

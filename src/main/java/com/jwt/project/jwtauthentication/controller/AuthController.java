@@ -1,7 +1,6 @@
 package com.jwt.project.jwtauthentication.controller;
 
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,29 +23,27 @@ import com.jwt.project.jwtauthentication.security.JwtHelper;
 @RequestMapping("/auth")
 public class AuthController {
 
-    @Autowired
-    private UserDetailsService userDetailsService;
+    private final UserDetailsService userDetailsService;
+    private final AuthenticationManager manager;
+    private final UserService userService;
+    private final JwtHelper helper;
 
-    @Autowired
-    private AuthenticationManager manager;
+    public AuthController(UserDetailsService userDetailsService, AuthenticationManager manager, UserService userService,
+            JwtHelper helper) {
+        this.userDetailsService = userDetailsService;
+        this.manager = manager;
+        this.userService = userService;
+        this.helper = helper;
+    }
 
-    @Autowired
-    private UserService userService;
-
-
-    @Autowired
-    private JwtHelper helper;
-
-    private org.slf4j.Logger logger = LoggerFactory.getLogger(AuthController.class);
-
-
+    // private org.slf4j.Logger logger =
+    // LoggerFactory.getLogger(AuthController.class);
 
     @PostMapping("/login")
     public ResponseEntity<JWTResponse> login(@RequestBody JWTRequest request) {
 
         // this will get email and password from header.
         this.doAuthenticate(request.getEmail(), request.getPassword());
-
 
         // If all ok and validated by manager class then we get user here
         UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
@@ -66,29 +63,35 @@ public class AuthController {
         try {
             manager.authenticate(authentication);
 
-
         } catch (BadCredentialsException e) {
             throw new BadCredentialsException(" Invalid Username or Password  !!");
         }
 
     }
 
-  /*  @ExceptionHandler(BadCredentialsException.class)
-    public String exceptionHandler() {
-        return "Credentials Invalid !!";
-    }
-    */ 
+    /*
+     * @ExceptionHandler(BadCredentialsException.class)
+     * public String exceptionHandler() {
+     * return "Credentials Invalid !!";
+     * }
+     */
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<String> exceptionHandler() {
-    return new ResponseEntity<>("Credentials Invalid !!", HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>("Credentials Invalid !!", HttpStatus.UNAUTHORIZED);
     }
-
 
     // mapping for creating user
     @PostMapping("/create-user")
-    public User createUser(@RequestBody User user){
-     return userService.createUser(user);
+    public ResponseEntity<?> createUser(@RequestBody User user) {
+        // Check if the email already exists
+        if (userService.existsByEmail(user.getEmail())) {
+            return new ResponseEntity<>("Email already exists!", HttpStatus.BAD_REQUEST);
+        }
+
+        // Save the user
+        User createdUser = userService.createUser(user);
+        return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
 
 }

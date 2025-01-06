@@ -1,8 +1,7 @@
 package com.jwt.project.jwtauthentication.security;
 
-import org.apache.logging.log4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,36 +20,29 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private org.slf4j.Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+    private final JwtHelper jwtHelper;
+    private final UserDetailsService userDetailsService;
+    private Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
-
-    @Autowired
-    private JwtHelper jwtHelper;
-
-
-    @Autowired
-    private UserDetailsService userDetailsService;
+    public JwtAuthenticationFilter(JwtHelper jwtHelper, UserDetailsService userDetailsService) {
+        this.jwtHelper = jwtHelper;
+        this.userDetailsService = userDetailsService;
+    }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException, java.io.IOException {
-
-//        try {
-//            Thread.sleep(500);
-//        } catch (InterruptedException e) {
-//            throw new RuntimeException(e);
-//        }
-        //Authorization
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException, java.io.IOException {
 
         String requestHeader = request.getHeader("Authorization");
-        //Bearer 2352345235sdfrsfgsdfsdf
+        // Bearer 2352345235sdfrsfgsdfsdf
         logger.info(" Header :  {}", requestHeader);
 
         String username = null;
         String token = null;
 
-        // if everthing all ok then only this conditions will work 
+        // if everthing all ok then only this conditions will work
         if (requestHeader != null && requestHeader.startsWith("Bearer")) {
-            //looking good
+            // looking good
             token = requestHeader.substring(7);
             try {
 
@@ -70,38 +62,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             }
 
-
         } else {
             logger.info("Invalid Header Value !! ");
         }
 
-
-        //  
+        //
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-
-            //fetch user detail from username
+            // fetch user detail from username
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
             Boolean validateToken = this.jwtHelper.validateToken(token, userDetails);
             if (validateToken) {
 
-                //set the authentication
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                // set the authentication
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 // set
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
-
             } else {
                 logger.info("Validation fails !!");
             }
 
-
         }
 
         filterChain.doFilter(request, response);
-
 
     }
 }

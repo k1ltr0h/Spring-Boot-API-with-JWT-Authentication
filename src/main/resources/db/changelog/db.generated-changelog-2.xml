@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!-- Cambiar el nombre de la tabla -->
+    <changeSet id="rename-user-table" author="k1ltr0">
+        <renameTable oldTableName="user_table" newTableName="user"/>
+    </changeSet>
+
+    <!-- Cambiar el nombre de la columna user_id a id -->
+    <changeSet id="rename-user-id-column" author="k1ltr0">
+        <renameColumn tableName="user" oldColumnName="user_id" newColumnName="id" columnDataType="VARCHAR(255)"/>
+    </changeSet>
+
+    <!-- Añadir restricción única y no nula a la columna email -->
+    <changeSet id="modify-email-constraints" author="k1ltr0">
+        <addNotNullConstraint tableName="user" columnName="email" columnDataType="VARCHAR(255)"/>
+        <addUniqueConstraint tableName="user" columnNames="email" constraintName="unique_email"/>
+    </changeSet>
+
+    <!-- Añadir columna role -->
+    <changeSet id="add-role-column" author="k1ltr0">
+        <addColumn tableName="user">
+            <column name="role" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

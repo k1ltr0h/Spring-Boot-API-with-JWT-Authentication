@@ -1,0 +1,10 @@
+# Usa una imagen más ligera para ejecutar el JAR
+FROM maven:3.8.5-openjdk-17
+
+# Establece el directorio de trabajo
+WORKDIR /springboot
+
+# Copia el código fuente del proyecto
+COPY . .
+
+ENTRYPOINT ["tail", "-f", "/dev/null"]
